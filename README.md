@@ -42,7 +42,7 @@ To TAP traffic and write it a file, set `server.yaml` to use
                   output_config:
                     streaming: false
                     sinks:
-                    - format: JSON_BODY_AS_STRING
+                    - format: JSON_BODY_AS_BYTES
                       file_per_tap:
                         path_prefix: /tmp/                
                 
@@ -62,7 +62,7 @@ In a new window, send over a request
 curl -v -H "foo: bar" -H "content-type: application/json"  -H "user: sal" -d '{"foo":"bar"}'  http://localhost:8080/post
 ```
 
-What you'll see in the `/tmp/` foder is a file like this with a random text prefixed by `_` (eg, `/tmp/_473128456949399711.json`)
+What you'll see in the `/tmp/` folder is a file like this with a random text prefixed by `_` (eg, `/tmp/_473128456949399711.json`)
 
 ```json
 {
@@ -83,7 +83,7 @@ What you'll see in the `/tmp/` foder is a file like this with a random text pref
     },
     {
      "key": ":scheme",
-     "value": "https"
+     "value": "http"
     },
     {
      "key": "user-agent",
@@ -115,7 +115,7 @@ What you'll see in the `/tmp/` foder is a file like this with a random text pref
     },
     {
      "key": "x-request-id",
-     "value": "f86ab8ef-68cd-4d35-9c73-7dfed2183f27"
+     "value": "230534ca-ebec-402e-83a8-a9702bf8fd78"
     },
     {
      "key": "x-envoy-expected-rq-timeout-ms",
@@ -124,7 +124,7 @@ What you'll see in the `/tmp/` foder is a file like this with a random text pref
    ],
    "body": {
     "truncated": false,
-    "as_string": "{\"foo\":\"bar\"}"
+    "as_bytes": "eyJmb28iOiJiYXIifQ=="
    },
    "trailers": []
   },
@@ -136,7 +136,7 @@ What you'll see in the `/tmp/` foder is a file like this with a random text pref
     },
     {
      "key": "date",
-     "value": "Fri, 04 Jun 2021 19:43:24 GMT"
+     "value": "Tue, 23 Nov 2021 21:33:22 GMT"
     },
     {
      "key": "content-type",
@@ -160,12 +160,15 @@ What you'll see in the `/tmp/` foder is a file like this with a random text pref
     },
     {
      "key": "x-envoy-upstream-service-time",
-     "value": "23"
+     "value": "26"
     }
    ],
    "body": {
     "truncated": false,
-    "as_string": "{\n  \"args\": {}, \n  \"data\": \"{\\\"foo\\\":\\\"bar\\\"}\", \n  \"files\": {}, \n  \"form\": {}, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Content-Length\": \"13\", \n    \"Content-Type\": \"application/json\", \n    \"Foo\": \"bar\", \n    \"Host\": \"localhost\", \n    \"User\": \"sal\", \n    \"User-Agent\": \"curl/7.74.0\", \n    \"X-Amzn-Trace-Id\": \"Root=1-60ba825c-34d4dcef58eca012486e1277\", \n    \"X-Envoy-Expected-Rq-Timeout-Ms\": \"15000\"\n  }, \n  \"json\": {\n    \"foo\": \"bar\"\n  }, \n  \"origin\": \"72.83.67.174\", \n  \"url\": \"https://localhost/post\"\n}\n"
+    "as_bytes": "ewogICJhcmdzIjoge30sIAogICJkYXRhIjogIntcImZvb1wiOlwiYmFyXCJ9IiwgCiAgImZpbGVzIjoge30sIAogICJmb3JtIjoge30sIAogICJoZWFkZXJzIjogewogICAgIkFjY2VwdCI6ICIqLyoiLCAKICAgICJDb250ZW50LUxlbmd0aCI6ICIxMyIsIA
+ogICAgIkNvbnRlbnQtVHlwZSI6ICJhcHBsaWNhdGlvbi9qc29uIiwgCiAgICAiRm9vIjogImJhciIsIAogICAgIkhvc3QiOiAibG9jYWxob3N0IiwgCiAgICAiVXNlciI6ICJzYWwiLCAKICAgICJVc2VyLUFnZW50IjogImN1cmwvNy43NC4wIiwgCiAgICAiWC1BbXpuLVRyYWNlL
+UlkIjogIlJvb3Q9MS02MTlkNWUyMi0xZGMzYTU4OTVkNWM2MzNiNDE3ZDg2ZTIiLCAKICAgICJYLUVudm95LUV4cGVjdGVkLVJxLVRpbWVvdXQtTXMiOiAiMTUwMDAiCiAgfSwgCiAgImpzb24iOiB7CiAgICAiZm9vIjogImJhciIKICB9LCAKICAib3JpZ2luIjogIjcyLjgzLjY3
+LjE3NCIsIAogICJ1cmwiOiAiaHR0cHM6Ly9sb2NhbGhvc3QvcG9zdCIKfQo="
    },
    "trailers": []
   }
@@ -173,7 +176,9 @@ What you'll see in the `/tmp/` foder is a file like this with a random text pref
 }
 ```
 
-If you set `streaming: true`, you'll see streamed segmets
+the response body is b64encoded JSON response from the upstream
+
+If you set `streaming: true`, you'll see streamed segments
 
 ```json
 {

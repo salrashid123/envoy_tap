@@ -23,6 +23,7 @@ static_resources:
           "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
           stat_prefix: ingress_http
           codec_type: AUTO
+          http2_protocol_options: {}          
           route_config:
             name: local_route
             virtual_hosts:
@@ -39,20 +40,22 @@ static_resources:
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.tap.v3.Tap
               common_config:
-                admin_config:
-                  config_id: test_config_id
-                # static_config:
-                #   match_config:
-                #     http_request_headers_match:
-                #       headers:
-                #       - name: foo
-                #         exact_match: bar
-                #   output_config:
-                #     streaming: false
-                #     sinks:
-                #     - format: JSON_BODY_AS_STRING
-                #       file_per_tap:
-                #         path_prefix: /tmp/                
+                # admin_config:
+                #   config_id: test_config_id
+                static_config:
+                  match_config:
+                    http_request_headers_match:
+                      headers:
+                      - name: foo
+                        exact_match: bar
+                  output_config:
+                    streaming: false
+                    max_buffered_rx_bytes: 5000
+                    max_buffered_tx_bytes: 5000
+                    sinks:
+                    - format: JSON_BODY_AS_BYTES
+                      file_per_tap:
+                        path_prefix: /tmp/                
                 
           - name: envoy.filters.http.router
 
