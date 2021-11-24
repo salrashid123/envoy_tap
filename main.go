@@ -67,15 +67,13 @@ tap_config:
 		rb = append(rb, line...)
 		// streaming: false
 		// unmashall as envoy_config_tap_v3_pb.HttpBufferedTrace{}
+		var tw envoy_config_tap_v3_pb.TraceWrapper
+		rdr := bytes.NewReader(rb)
 
-		if string(line) == "}\n" {
-			var tw envoy_config_tap_v3_pb.TraceWrapper
-			rdr := bytes.NewReader(rb)
-			err := jsonpb.Unmarshal(rdr, &tw)
-			if err != nil {
-				log.Fatalf("Error unmarshalling TraceWrapper %v", err)
-			}
-
+		// just wait until you get a proper TraceWrapper
+		//  i don't really like this approach since rb can be unbounded string..
+		err = jsonpb.Unmarshal(rdr, &tw)
+		if err == nil {
 			bt := tw.GetHttpBufferedTrace()
 			pbody := bt.Response.Body.GetAsBytes()
 			log.Printf("Message %s\n", string(pbody))
