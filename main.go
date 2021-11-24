@@ -77,6 +77,7 @@ tap_config:
 			bt := tw.GetHttpBufferedTrace()
 			pbody := bt.Response.Body.GetAsBytes()
 			log.Printf("Message %s\n", string(pbody))
+			rb = []byte("")
 		}
 		// if streaming: true
 		// unmarshal as envoy_config_tap_v3_pb.HttpStreamedTraceSegment{}
