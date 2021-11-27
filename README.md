@@ -484,6 +484,60 @@ go run src/grpc_client.go \
 
 What you should see in the TAP client is the parsed protobuf messages that traversed envoy.
 
+
+### GCP Pubsub Envoy TAP
+
+As an extended example, you can also parse GCP Pubsub protos:
+
+- set `parser/main.go` to catch `/google.pubsub.v1.Publisher/ListTopics` and import the pubsub protobuf
+
+
+```golang
+import (
+  pubsubpb "google.golang.org/genproto/googleapis/pubsub/v1"
+)
+
+..
+
+pm := pubsubpb.ListTopicsResponse{}
+
+
+	c := `
+config_id: test_config_id
+tap_config:
+  match_config:
+   http_request_headers_match:
+    headers:
+    - name: ":path"
+      exact_match: "/google.pubsub.v1.Publisher/ListTopics"
+  output_config:
+    streaming: false
+    max_buffered_rx_bytes: 5000
+    max_buffered_tx_bytes: 5000		
+    sinks:
+    - format: JSON_BODY_AS_BYTES
+      streaming_admin: {}`
+```
+
+Run Envoy
+
+```bash
+envoy -c gcp_envoy.yaml
+```
+
+Run parser
+
+```
+go run parser/main.go
+```
+
+Finally run pubsub client
+
+```bash
+cd grpc/gcp
+go run pubsub.go
+```
+
 ---
 
 thats all folks,
