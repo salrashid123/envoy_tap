@@ -2,7 +2,7 @@
 
 Simple implementation of an [Envoy Tap Filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/tap_filter).  Really, thats it.
 
-All that this repo does is shows the "helloworld" of setting up the TAP filter to write request/response to a file and to use the ADMIN interface to dynamically receive the forked metrics.
+All that this repo does is shows the "helloworld" of setting up the TAP filter to write request/response to a file and to use the ADMIN interface to dynamically receive the forked metrics.   This repo demonstrates both `HTTP` and `gRPC` message processing
 
 Use this...well, just to understand the basics...i dont' know how its operationalized beyond mesh frameworks like [istio traffic tapping](https://www.envoyproxy.io/docs/envoy/latest/operations/traffic_tapping).
 
@@ -19,7 +19,8 @@ docker cp `docker create  envoyproxy/envoy-dev:latest`:/usr/local/bin/envoy .
 
 ---
 
-## Tap Static
+## HTTP
+### Tap Static
 
 
 To TAP traffic and write it a file, set `server.yaml` to use
@@ -165,10 +166,7 @@ What you'll see in the `/tmp/` folder is a file like this with a random text pre
    ],
    "body": {
     "truncated": false,
-    "as_bytes": "ewogICJhcmdzIjoge30sIAogICJkYXRhIjogIntcImZvb1wiOlwiYmFyXCJ9IiwgCiAgImZpbGVzIjoge30sIAogICJmb3JtIjoge30sIAogICJoZWFkZXJzIjogewogICAgIkFjY2VwdCI6ICIqLyoiLCAKICAgICJDb250ZW50LUxlbmd0aCI6ICIxMyIsIA
-ogICAgIkNvbnRlbnQtVHlwZSI6ICJhcHBsaWNhdGlvbi9qc29uIiwgCiAgICAiRm9vIjogImJhciIsIAogICAgIkhvc3QiOiAibG9jYWxob3N0IiwgCiAgICAiVXNlciI6ICJzYWwiLCAKICAgICJVc2VyLUFnZW50IjogImN1cmwvNy43NC4wIiwgCiAgICAiWC1BbXpuLVRyYWNlL
-UlkIjogIlJvb3Q9MS02MTlkNWUyMi0xZGMzYTU4OTVkNWM2MzNiNDE3ZDg2ZTIiLCAKICAgICJYLUVudm95LUV4cGVjdGVkLVJxLVRpbWVvdXQtTXMiOiAiMTUwMDAiCiAgfSwgCiAgImpzb24iOiB7CiAgICAiZm9vIjogImJhciIKICB9LCAKICAib3JpZ2luIjogIjcyLjgzLjY3
-LjE3NCIsIAogICJ1cmwiOiAiaHR0cHM6Ly9sb2NhbGhvc3QvcG9zdCIKfQo="
+    "as_bytes": "ewogICJhcmdzIjoge30sIAogICJkYXRhIjogIntcImZvb1wiOlwiYmFyXCJ9IiwgCiAgImZpbGVzIjoge30sIAogICJmb3JtIjoge30sIAogICJoZWFkZXJzIjogewogICAgIkFjY2VwdCI6ICIqLyoiLCAKICAgICJDb250ZW50LUxlbmd0aCI6ICIxMyIsIAogICAgIkNvbnRlbnQtVHlwZSI6ICJhcHBsaWNhdGlvbi9qc29uIiwgCiAgICAiRm9vIjogImJhciIsIAogICAgIkhvc3QiOiAibG9jYWxob3N0IiwgCiAgICAiVXNlciI6ICJzYWwiLCAKICAgICJVc2VyLUFnZW50IjogImN1cmwvNy43NC4wIiwgCiAgICAiWC1BbXpuLVRyYWNlLUlkIjogIlJvb3Q9MS02MTlkNWUyMi0xZGMzYTU4OTVkNWM2MzNiNDE3ZDg2ZTIiLCAKICAgICJYLUVudm95LUV4cGVjdGVkLVJxLVRpbWVvdXQtTXMiOiAiMTUwMDAiCiAgfSwgCiAgImpzb24iOiB7CiAgICAiZm9vIjogImJhciIKICB9LCAKICAib3JpZ2luIjogIjcyLjgzLjY3LjE3NCIsIAogICJ1cmwiOiAiaHR0cHM6Ly9sb2NhbGhvc3QvcG9zdCIKfQo="
    },
    "trailers": []
   }
@@ -193,7 +191,7 @@ If you set `streaming: true`, you'll see streamed segments
 
 ---
 
-## Admin
+### Admin
 
 The following sets up TAP but instead of using the Static config, the parameters are set via a remote application and streamed back to that app:
 
@@ -406,6 +404,88 @@ golang...there is certainly away...if you know it, LMK
 
 ---
 
+## gRPC
+
+For gRPC we will run a simple client->envoy->server just like the http sample above. The admin tap application will connect to envoy and receive a copy of 
+a specific, named RPC that traverses envoy.  The tap application will then attempt to decode the protobuf that is contained in that specif call.
+
+As above,
+
+#### get envoy 
+
+```bash
+  docker cp `docker create envoyproxy/envoy-dev:latest`:/usr/local/bin/envoy .
+```
+
+(optional compile protos)
+
+```bash
+$ protoc --version
+libprotoc 3.19.1
+
+protoc -I/usr/local/include -I . --go_out=. \
+    --descriptor_set_out=src/echo/echo.pb --go_opt=paths=source_relative \
+    --go-grpc_opt=require_unimplemented_servers=false --go-grpc_out=. \
+    --go-grpc_opt=paths=source_relative src/echo/echo.proto
+```
+
+#### run server
+
+```bash
+  go run src/grpc_server.go \
+    --grpcport 0.0.0.0:50051 \
+    --tlsCert=certs/grpc_server_crt.pem \
+    --tlsKey=certs/grpc_server_key.pem
+```
+
+now run and enable the admin TAP listener
+
+```
+./envoy -c basic.yaml
+```
+
+#### run tap client
+
+The TAP application will attempt to parse the Unary requests
+
+```golang
+	c := `
+config_id: test_config_id
+tap_config:
+  match_config:
+   http_request_headers_match:
+    headers:
+    - name: ":path"
+      exact_match: "/echo.EchoServer/SayHelloUnary"
+  output_config:
+    streaming: false
+    max_buffered_rx_bytes: 5000
+    max_buffered_tx_bytes: 5000		
+    sinks:
+    - format: JSON_BODY_AS_BYTES
+      streaming_admin: {}`
+```
+
+If you want,you can specify other APIs endpoints or wildcard all endpoints.  For the latter, you will have to selectively parse back the messages.  In the case of the attached rpcs, it
+doesn't really matter since they are all return `echo.EchoReply`.  Note, this sample does not support compression `Length-Prefixed-Message` in the [grpc protocol](https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md))
+
+```bash
+go run parser/main.go
+```
+
+#### run grpc_client
+
+```bash
+go run src/grpc_client.go \
+    --host 127.0.0.1:8080 \
+    --tlsCert=certs/CA_crt.pem \
+    --servername=grpc.domain.com
+```
+
+What you should see in the TAP client is the parsed protobuf messages that traversed envoy.
+
+---
+
 thats all folks,
 
 ---
@@ -427,6 +507,8 @@ Other reference envoy samples
 - [gRPC per method observability with envoy, Istio, OpenCensus and GKE](https://github.com/salrashid123/grpc_stats_envoy_istio#envoy)
 - [gRPC XDS](https://github.com/salrashid123/grpc_xds)
 - [gRPC ALTS](https://github.com/salrashid123/grpc_alts)
+
+- [gRPC curl](https://github.com/salrashid123/grpc_curl)
 
 
 https://pkg.go.dev/github.com/envoyproxy/go-control-plane/envoy/data/tap/v3
