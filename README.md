@@ -196,7 +196,7 @@ If you set `streaming: true`, you'll see streamed segments
 The following sets up TAP but instead of using the Static config, the parameters are set via a remote application and streamed back to that app:
 
 
-On `server.yaml`, first enable the admin config
+On `server.yaml`, first enable the `admin_config` and comment out the `static_config`
 ```yaml
           http_filters:
           - name: envoy.filters.http.tap
@@ -205,6 +205,20 @@ On `server.yaml`, first enable the admin config
               common_config:
                 admin_config:
                   config_id: test_config_id
+                # static_config:
+                #   match_config:
+                #     http_request_headers_match:
+                #       headers:
+                #       - name: foo
+                #         exact_match: bar
+                #   output_config:
+                #     streaming: false
+                #     max_buffered_rx_bytes: 5000
+                #     max_buffered_tx_bytes: 5000
+                #     sinks:
+                #     - format: JSON_BODY_AS_BYTES
+                #       file_per_tap:
+                #         path_prefix: /tmp/  
 ```
 
 Then run envoy
