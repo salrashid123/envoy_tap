@@ -52,6 +52,9 @@ static_resources:
                 #       file_per_tap:
                 #         path_prefix: /tmp/             
           - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router    
+
       transport_socket:
         name: envoy.transport_sockets.tls
         typed_config:
@@ -60,9 +63,9 @@ static_resources:
           common_tls_context:
             tls_certificates:
             - certificate_chain:
-                filename: certs/grpc_server_crt.pem
+                filename: certs/grpc.crt
               private_key:
-                filename: certs/grpc_server_key.pem      
+                filename: certs/grpc.key      
 
   clusters:
   - name: service_grpc
@@ -98,4 +101,4 @@ static_resources:
         common_tls_context:    
           validation_context:
             trusted_ca:
-              filename: "certs/CA_crt.pem"
+              filename: "certs/root-ca.crt"

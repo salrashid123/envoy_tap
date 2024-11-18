@@ -448,8 +448,8 @@ protoc -I/usr/local/include -I . --go_out=. \
 ```bash
   go run src/grpc_server.go \
     --grpcport 0.0.0.0:50051 \
-    --tlsCert=certs/grpc_server_crt.pem \
-    --tlsKey=certs/grpc_server_key.pem
+    --tlsCert=certs/grpc.crt \
+    --tlsKey=certs/grpc.key
 ```
 
 now run and enable the admin TAP listener
@@ -492,7 +492,7 @@ go run parser/main.go
 ```bash
 go run src/grpc_client.go \
     --host 127.0.0.1:8080 \
-    --tlsCert=certs/CA_crt.pem \
+    --tlsCert=certs/root-ca.crt \
     --servername=grpc.domain.com
 ```
 
